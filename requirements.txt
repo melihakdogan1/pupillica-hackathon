@@ -1,0 +1,18 @@
+# Web scraping dependencies
+requests
+beautifulsoup4
+pandas
+tqdm
+selenium
+webdriver-manager
+
+# Backend API dependencies
+fastapi
+uvicorn[standard]
+python-multipart
+pymupdf4llm
+chromadb
+sentence-transformers
+
+# Additional utilities
+python-dotenv
