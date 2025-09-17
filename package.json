@@ -1,0 +1,18 @@
+{
+  "name": "ilacasistan",
+  "version": "1.0.0",
+  "description": "İlaç Asistanı - TİTCK İlaç ve Tıbbi Ürün Bilgi Sistemi",
+  "main": "api/search.py",
+  "scripts": {
+    "dev": "vercel dev",
+    "build": "echo 'Build complete'",
+    "start": "vercel --prod"
+  },
+  "keywords": ["ilac", "tibbi", "urun", "titck", "arama", "semantic"],
+  "author": "İlaç Asistanı Team",
+  "license": "MIT",
+  "dependencies": {},
+  "engines": {
+    "node": "22.x"
+  }
+}

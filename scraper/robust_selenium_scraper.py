@@ -86,11 +86,22 @@ def safe_driver_operation(driver, operation_func, max_retries=MAX_RETRIES):
                 raise
 
 def handle_alerts(driver):
-    """Açık alert'leri kapat"""
+    """Alert popup'larını işle - Ajax hata handling dahil"""
     try:
         alert = driver.switch_to.alert
         alert_text = alert.text
         print(f"⚠️ Alert tespit edildi: {alert_text}")
+        
+        # Ajax hatası kontrolü
+        if "DataTables warning" in alert_text or "Ajax error" in alert_text:
+            print("🔄 Ajax hatası tespit edildi - sayfa yenileniyor...")
+            alert.accept()
+            time.sleep(3)
+            # Sayfayı yenile
+            driver.refresh()
+            time.sleep(5)
+            return True
+        
         alert.accept()
         time.sleep(2)
         return True
@@ -421,20 +432,29 @@ def main():
     os.makedirs(KUB_DIR, exist_ok=True)
     os.makedirs(KT_DIR, exist_ok=True)
     
-    # Sayfa 1'den başla, mevcut dosyaları skip et
-    start_page = 1
-    total_processed = 0
-    total_kub_count = 0
-    total_kt_count = 0
+    # Önceki progress'i yükle
+    previous_progress = load_progress()
     
-    print(f"🔄 Sayfa 1'den başlatılıyor...")
+    if previous_progress:
+        start_page = previous_progress['current_page'] + 1  # Bir sonraki sayfadan başla
+        total_processed = previous_progress['total_processed']
+        total_kub_count = previous_progress['kub_downloaded']
+        total_kt_count = previous_progress['kt_downloaded']
+        print(f"📖 Önceki progress yüklendi:")
+        print(f"   Son işlenen sayfa: {previous_progress['current_page']}")
+        print(f"   Başarı oranı: {previous_progress['success_rate']}%")
+        print(f"   KUB: {total_kub_count}, KT: {total_kt_count}")
+        print(f"🎯 Hedef: 1519 sayfa (kalan: {1519 - start_page + 1} sayfa)")
+    else:
+        start_page = 1
+        total_processed = 0
+        total_kub_count = 0
+        total_kt_count = 0
+    
+    print(f"🔄 Sayfa {start_page}'den başlatılıyor...")
     print(f"   Hedef: Eksik dosyaları bulup indirmek")
     print(f"   ✅ Mevcut dosyalar hızlıca atlanacak")
     print(f"   📥 Sadece eksik dosyalar indirilecek")
-    
-    # Progress dosyasını temizle - yeni başlangıç
-    if os.path.exists('progress.json'):
-        os.remove('progress.json')
     
     driver = None
     try:

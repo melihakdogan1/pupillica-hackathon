@@ -1,0 +1,9 @@
+node_modules/
+*.pyc
+__pycache__/
+.env
+.vercel
+data/raw/
+*.log
+.vscode/
+.DS_Store
