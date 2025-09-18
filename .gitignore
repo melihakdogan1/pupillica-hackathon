@@ -3,7 +3,7 @@ node_modules/
 __pycache__/
 .env
 .vercel
-data/raw/
+data/
 *.log
 .vscode/
 .DS_Store
