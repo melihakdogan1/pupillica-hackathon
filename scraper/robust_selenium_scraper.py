@@ -32,7 +32,7 @@ PAGE_LOAD_TIMEOUT = 60  # saniye
 
 def setup_driver():
     """Chrome WebDriver'ı başlat ve bot detection'ı aş"""
-    print("🔧 Chrome WebDriver başlatılıyor...")
+    print(" Chrome WebDriver başlatılıyor...")
     
     options = Options()
     options.add_argument("--no-sandbox")
@@ -73,7 +73,7 @@ def safe_driver_operation(driver, operation_func, max_retries=MAX_RETRIES):
         try:
             return operation_func(driver)
         except (TimeoutException, WebDriverException) as e:
-            print(f"⚠️ Driver hatası (Deneme {attempt + 1}/{max_retries}): {str(e)[:100]}")
+            print(f" Driver hatası (Deneme {attempt + 1}/{max_retries}): {str(e)[:100]}")
             if attempt < max_retries - 1:
                 time.sleep(RETRY_DELAY * (attempt + 1))  # Exponential backoff
                 try:
@@ -86,29 +86,18 @@ def safe_driver_operation(driver, operation_func, max_retries=MAX_RETRIES):
                 raise
 
 def handle_alerts(driver):
-    """Alert popup'larını işle - Ajax hata handling dahil"""
+    """Açık alert'leri kapat"""
     try:
         alert = driver.switch_to.alert
         alert_text = alert.text
-        print(f"⚠️ Alert tespit edildi: {alert_text}")
-        
-        # Ajax hatası kontrolü
-        if "DataTables warning" in alert_text or "Ajax error" in alert_text:
-            print("🔄 Ajax hatası tespit edildi - sayfa yenileniyor...")
-            alert.accept()
-            time.sleep(3)
-            # Sayfayı yenile
-            driver.refresh()
-            time.sleep(5)
-            return True
-        
+        print(f" Alert tespit edildi: {alert_text}")
         alert.accept()
         time.sleep(2)
         return True
     except NoAlertPresentException:
         return False
     except Exception as e:
-        print(f"⚠️ Alert işleme hatası: {e}")
+        print(f" Alert işleme hatası: {e}")
         return False
 
 def download_pdf_with_retry(url, file_path, max_retries=MAX_RETRIES):
@@ -116,7 +105,7 @@ def download_pdf_with_retry(url, file_path, max_retries=MAX_RETRIES):
     
     # Dosya zaten mevcutsa indirme
     if os.path.exists(file_path):
-        print(f"📄 Dosya mevcut, atlanıyor: {os.path.basename(file_path)}")
+        print(f" Dosya mevcut, atlanıyor: {os.path.basename(file_path)}")
         return True
     
     headers = {
@@ -133,7 +122,7 @@ def download_pdf_with_retry(url, file_path, max_retries=MAX_RETRIES):
     
     for attempt in range(max_retries):
         try:
-            print(f"📥 İndirme denemesi {attempt + 1}/{max_retries}: {os.path.basename(file_path)}")
+            print(f" İndirme denemesi {attempt + 1}/{max_retries}: {os.path.basename(file_path)}")
             
             response = session.get(url, timeout=CONNECTION_TIMEOUT, stream=True)
             
@@ -158,16 +147,16 @@ def download_pdf_with_retry(url, file_path, max_retries=MAX_RETRIES):
                 raise Exception(f"HTTP {response.status_code}")
                 
         except (ConnectionError, Timeout, RequestException) as e:
-            print(f"⚠️ İndirme hatası (Deneme {attempt + 1}/{max_retries}): {str(e)[:100]}")
+            print(f" İndirme hatası (Deneme {attempt + 1}/{max_retries}): {str(e)[:100]}")
             if attempt < max_retries - 1:
                 # Random delay ekle
                 delay = RETRY_DELAY + random.uniform(1, 5)
-                print(f"⏳ {delay:.1f} saniye bekleniyor...")
+                print(f" {delay:.1f} saniye bekleniyor...")
                 time.sleep(delay)
             else:
                 return False
         except Exception as e:
-            print(f"⚠️ Genel indirme hatası: {str(e)[:100]}")
+            print(f" Genel indirme hatası: {str(e)[:100]}")
             if attempt < max_retries - 1:
                 time.sleep(RETRY_DELAY)
             else:
@@ -209,7 +198,7 @@ def navigate_to_next_page_safe(driver, wait):
         try:
             current_page_element = driver.find_element(By.CSS_SELECTOR, ".paginate_button.current")
             current_page = current_page_element.text
-            print(f"📄 Mevcut sayfa: {current_page}")
+            print(f" Mevcut sayfa: {current_page}")
         except:
             current_page = "unknown"
         
@@ -223,7 +212,7 @@ def navigate_to_next_page_safe(driver, wait):
         # Buton durumunu kontrol et
         button_class = next_button.get_attribute("class") or ""
         if "disabled" in button_class:
-            print("❌ Next butonu disabled - son sayfada")
+            print(" Next butonu disabled - son sayfada")
             return False
         
         # Çoklu navigation yöntemi dene
@@ -240,7 +229,7 @@ def navigate_to_next_page_safe(driver, wait):
         success = False
         for method_name, method_func in navigation_methods:
             try:
-                print(f"🔄 {method_name} deneniyor...")
+                print(f" {method_name} deneniyor...")
                 
                 # Butonu görünür yap
                 driver.execute_script("arguments[0].scrollIntoView({block: 'center'});", next_button)
@@ -259,28 +248,28 @@ def navigate_to_next_page_safe(driver, wait):
                     new_page = new_page_element.text
                     
                     if new_page != current_page:
-                        print(f"✅ Sayfa başarıyla değişti: {current_page} → {new_page}")
+                        print(f" Sayfa başarıyla değişti: {current_page} → {new_page}")
                         success = True
                         break
                     else:
-                        print(f"⚠️ Sayfa değişmedi, aynı sayfa: {current_page}")
+                        print(f" Sayfa değişmedi, aynı sayfa: {current_page}")
                         
                 except TimeoutException:
-                    print(f"⚠️ {method_name}: Sayfa elementi bulunamadı")
+                    print(f" {method_name}: Sayfa elementi bulunamadı")
                 except Exception as e:
-                    print(f"⚠️ {method_name}: Kontrol hatası - {e}")
+                    print(f" {method_name}: Kontrol hatası - {e}")
                     
             except Exception as e:
-                print(f"❌ {method_name} başarısız: {e}")
+                print(f" {method_name} başarısız: {e}")
                 continue
         
         if not success:
-            print("❌ Tüm navigation yöntemleri başarısız!")
+            print(" Tüm navigation yöntemleri başarısız!")
             return False
         
         # Sayfa yüklenene kadar bekle
         try:
-            print("⏳ Yeni sayfa yükleniyor...")
+            print(" Yeni sayfa yükleniyor...")
             
             # Datatable'ın yenilenmesini bekle
             WebDriverWait(driver, 15).until(
@@ -296,13 +285,13 @@ def navigate_to_next_page_safe(driver, wait):
             handle_alerts(driver)
             
             time.sleep(3)  # Stabil olması için bekle
-            print("✅ Sayfa başarıyla yüklendi")
+            print(" Sayfa başarıyla yüklendi")
             
         except TimeoutException as e:
-            print(f"⚠️ Sayfa yüklenme timeout: {e}")
+            print(f" Sayfa yüklenme timeout: {e}")
             time.sleep(5)  # Fallback bekle
         except Exception as e:
-            print(f"⚠️ Sayfa yüklenme hatası: {e}")
+            print(f" Sayfa yüklenme hatası: {e}")
             time.sleep(5)
         
         return True
@@ -310,7 +299,7 @@ def navigate_to_next_page_safe(driver, wait):
     try:
         return safe_driver_operation(driver, _navigate, max_retries=3)  # Retry artırıldı
     except Exception as e:
-        print(f"⚠️ Sayfa geçiş hatası: {e}")
+        print(f" Sayfa geçiş hatası: {e}")
         return False
 
 def save_progress(page_num, total_processed, kub_count, kt_count):
@@ -348,7 +337,7 @@ def scrape_current_page_robust(driver, wait, page_num):
         print(f"Sayfada {len(rows)} satır bulundu.")
         
         if not rows:
-            print("❌ Bu sayfada veri bulunamadı.")
+            print(" Bu sayfada veri bulunamadı.")
             return 0, 0, 0
         
         page_success_count = 0
@@ -384,11 +373,11 @@ def scrape_current_page_robust(driver, wait, page_num):
                     kub_path = os.path.join(KUB_DIR, kub_filename)
                     
                     if download_pdf_with_retry(kub_url, kub_path):
-                        print("    KÜB: ✓")
+                        print("    KÜB: ")
                         kub_success = True
                         page_kub_count += 1
                     else:
-                        print(f"    KÜB: ✗ (HATA: {safe_name}_KUB indirilemedi)")
+                        print(f"    KÜB:  (HATA: {safe_name}_KUB indirilemedi)")
                 else:
                     print("    KÜB: Link geçersiz")
                 
@@ -399,11 +388,11 @@ def scrape_current_page_robust(driver, wait, page_num):
                     kt_path = os.path.join(KT_DIR, kt_filename)
                     
                     if download_pdf_with_retry(kt_url, kt_path):
-                        print("    KT: ✓")
+                        print("    KT: ")
                         kt_success = True
                         page_kt_count += 1
                     else:
-                        print(f"    KT: ✗ (HATA: {safe_name}_KT indirilemedi)")
+                        print(f"    KT:  (HATA: {safe_name}_KT indirilemedi)")
                 else:
                     print("    KT: Link geçersiz")
                 
@@ -414,63 +403,54 @@ def scrape_current_page_robust(driver, wait, page_num):
                 time.sleep(random.uniform(0.5, 1.5))
                 
             except Exception as e:
-                print(f"⚠️ Satır işleme hatası: {str(e)[:100]}")
+                print(f" Satır işleme hatası: {str(e)[:100]}")
                 continue
         
         print(f"Sayfa özeti: {len(rows)} ilaç işlendi, {page_success_count} başarılı indirme")
         return len(rows), page_kub_count, page_kt_count
         
     except Exception as e:
-        print(f"❌ Sayfa kazıma hatası: {e}")
+        print(f" Sayfa kazıma hatası: {e}")
         return 0, 0, 0
 
 def main():
     """Ana scraping fonksiyonu"""
-    print("🚀 Robust TİTCK İlaç Bilgileri Scraper Başlatılıyor...")
+    print(" Robust TİTCK İlaç Bilgileri Scraper Başlatılıyor...")
     
     # Klasörleri oluştur
     os.makedirs(KUB_DIR, exist_ok=True)
     os.makedirs(KT_DIR, exist_ok=True)
     
-    # Önceki progress'i yükle
-    previous_progress = load_progress()
+    # Sayfa 1'den başla, mevcut dosyaları skip et
+    start_page = 1
+    total_processed = 0
+    total_kub_count = 0
+    total_kt_count = 0
     
-    if previous_progress:
-        start_page = previous_progress['current_page'] + 1  # Bir sonraki sayfadan başla
-        total_processed = previous_progress['total_processed']
-        total_kub_count = previous_progress['kub_downloaded']
-        total_kt_count = previous_progress['kt_downloaded']
-        print(f"📖 Önceki progress yüklendi:")
-        print(f"   Son işlenen sayfa: {previous_progress['current_page']}")
-        print(f"   Başarı oranı: {previous_progress['success_rate']}%")
-        print(f"   KUB: {total_kub_count}, KT: {total_kt_count}")
-        print(f"🎯 Hedef: 1519 sayfa (kalan: {1519 - start_page + 1} sayfa)")
-    else:
-        start_page = 1
-        total_processed = 0
-        total_kub_count = 0
-        total_kt_count = 0
-    
-    print(f"🔄 Sayfa {start_page}'den başlatılıyor...")
+    print(f" Sayfa 1'den başlatılıyor...")
     print(f"   Hedef: Eksik dosyaları bulup indirmek")
-    print(f"   ✅ Mevcut dosyalar hızlıca atlanacak")
-    print(f"   📥 Sadece eksik dosyalar indirilecek")
+    print(f"    Mevcut dosyalar hızlıca atlanacak")
+    print(f"    Sadece eksik dosyalar indirilecek")
+    
+    # Progress dosyasını temizle - yeni başlangıç
+    if os.path.exists('progress.json'):
+        os.remove('progress.json')
     
     driver = None
     try:
         driver = setup_driver()
         wait = WebDriverWait(driver, 20)
         
-        print(f"🌐 {SEARCH_URL} adresine gidiliyor...")
+        print(f" {SEARCH_URL} adresine gidiliyor...")
         driver.get(SEARCH_URL)
         time.sleep(5)
         
         # Başlangıç sayfasına git
         if start_page > 1:
-            print(f"📄 Sayfa {start_page}'a gidiliyor...")
+            print(f" Sayfa {start_page}'a gidiliyor...")
             for _ in range(start_page - 1):
                 if not navigate_to_next_page_safe(driver, wait):
-                    print("❌ Sayfa geçişi başarısız!")
+                    print(" Sayfa geçişi başarısız!")
                     break
                 time.sleep(2)
         
@@ -491,8 +471,8 @@ def main():
                 total_kt_count += page_kt
                 
                 print(f"✓ Sayfa {current_page} tamamlandı: {page_count} ilaç işlendi")
-                print(f"📊 Toplam işlenen ilaç: {total_processed}")
-                print(f"📁 İndirilen dosyalar - KÜB: {total_kub_count}, KT: {total_kt_count}")
+                print(f" Toplam işlenen ilaç: {total_processed}")
+                print(f" İndirilen dosyalar - KÜB: {total_kub_count}, KT: {total_kt_count}")
                 
                 # İlerlemeyi kaydet
                 save_progress(current_page, total_processed, total_kub_count, total_kt_count)
@@ -500,7 +480,7 @@ def main():
                 # Sonraki sayfaya geç
                 print("Sonraki sayfaya geçiliyor...")
                 if not navigate_to_next_page_safe(driver, wait):
-                    print("❌ Son sayfaya ulaşıldı veya sonraki sayfaya geçilemedi.")
+                    print(" Son sayfaya ulaşıldı veya sonraki sayfaya geçilemedi.")
                     break
                 
                 current_page += 1
@@ -509,17 +489,17 @@ def main():
                 time.sleep(random.uniform(2, 5))
                 
             except Exception as e:
-                print(f"❌ Sayfa {current_page} işleme hatası: {e}")
+                print(f" Sayfa {current_page} işleme hatası: {e}")
                 # Hata durumunda sayfayı atla
                 if not navigate_to_next_page_safe(driver, wait):
                     break
                 current_page += 1
                 continue
         
-        print("\n🔄 Tarayıcı kapatılıyor...")
+        print("\n Tarayıcı kapatılıyor...")
         
     except Exception as e:
-        print(f"❌ Kritik hata: {e}")
+        print(f" Kritik hata: {e}")
     
     finally:
         if driver:
@@ -529,13 +509,13 @@ def main():
         success_rate = round(((total_kub_count + total_kt_count) / (total_processed * 2)) * 100, 1) if total_processed > 0 else 0
         
         print(f"\n{'='*60}")
-        print("🎉 VERİ ÇEKME İŞLEMİ TAMAMLANDI")
+        print(" VERİ ÇEKME İŞLEMİ TAMAMLANDI")
         print(f"{'='*60}")
-        print(f"📋 Toplam İşlenen İlaç: {total_processed}")
-        print(f"📁 İndirilen KÜB Dosyası: {total_kub_count}")
-        print(f"📁 İndirilen KT Dosyası: {total_kt_count}")
-        print(f"📁 Toplam İndirilen: {total_kub_count + total_kt_count}")
-        print(f"📊 Başarı Oranı: {success_rate}%")
+        print(f"Toplam İşlenen İlaç: {total_processed}")
+        print(f"İndirilen KÜB Dosyası: {total_kub_count}")
+        print(f"İndirilen KT Dosyası: {total_kt_count}")
+        print(f"Toplam İndirilen: {total_kub_count + total_kt_count}")
+        print(f"Başarı Oranı: {success_rate}%")
         print(f"{'='*60}")
 
 if __name__ == "__main__":

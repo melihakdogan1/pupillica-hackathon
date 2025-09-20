@@ -79,7 +79,7 @@ def scrape_titck():
     session = create_session_with_retries()
     total_ilac_count = 0
     
-    for page_num in range(1, MAX_PAGES + 1):
+    for page_num in range(300, MAX_PAGES + 1):
         print(f"\n--- Sayfa {page_num}/{MAX_PAGES} Taranıyor ---")
         params = {'page': page_num}
         try:

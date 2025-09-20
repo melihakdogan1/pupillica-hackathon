@@ -21,16 +21,24 @@ from tqdm import tqdm
 # --- Konfigürasyon ---
 EMBEDDING_MODEL = "sentence-transformers/all-mpnet-base-v2"
 DISTANCE_FUNCTION = "cosine"
-DB_PATH = "data/veritabani"
+DB_PATH = "data/veritabani_optimized"  # Optimized demo veritabanı
 COLLECTION_NAME = "ilac_prospektusleri"
+
+# Türkiye'de en sık kullanılan ilaçların optimized listesi (demo için sınırlandırılmış)
+POPULAR_DRUGS = [
+    "PARASETAMOL", "PAROL", "IBUPROFEN", "ASPIRIN", "METAMIZOL", "A-FERIN", 
+    "AUGMENTIN", "AMOKSISILIN", "SEFALEKSIN", "OMEPRAZOL", "LANSOPRAZOL", 
+    "METFORMIN", "LORATADIN", "CLARINASE", "VOLTAREN", "DIKLOFENAK",
+    "RAMIPRIL", "AMLODIPINE", "METOPROLOL", "CONCOR"
+]
 
 # PDF klasörleri
 KUB_PATH = "data/kub"
 KT_PATH = "data/kt"
 
-# Metin parçalama ayarları
-CHUNK_SIZE = 1000  # Karakter sayısı
-CHUNK_OVERLAP = 200  # Örtüşme
+# Metin parçalama ayarları (daha küçük chunks için optimize)
+CHUNK_SIZE = 800  # Daha küçük parçalar
+CHUNK_OVERLAP = 150  # Daha az örtüşme
 
 # --- Logging Setup ---
 logging.basicConfig(
@@ -105,27 +113,39 @@ def chunk_text(text: str, chunk_size: int = CHUNK_SIZE, overlap: int = CHUNK_OVE
     return chunks
 
 def find_all_pdfs() -> List[Dict[str, str]]:
-    """KUB ve KT klasörlerindeki tüm PDF'leri bulur."""
+    """Sık kullanılan ilaçlar listesindeki PDF'leri bulur."""
     pdfs = []
+    logger.info(f"Sık kullanılan ilaçlar listesine göre PDF'ler aranıyor: {POPULAR_DRUGS}")
+    found_drugs = set()
+
+    # Her iki klasörde de ara
+    search_paths = [
+        (KUB_PATH, "KUB"),
+        (KT_PATH, "KT")
+    ]
     
-    # KUB PDF'leri
-    if os.path.exists(KUB_PATH):
-        for pdf_file in Path(KUB_PATH).glob("*.pdf"):
-            pdfs.append({
-                "path": str(pdf_file),
-                "type": "KUB",
-                "name": pdf_file.stem
-            })
-    
-    # KT PDF'leri
-    if os.path.exists(KT_PATH):
-        for pdf_file in Path(KT_PATH).glob("*.pdf"):
-            pdfs.append({
-                "path": str(pdf_file),
-                "type": "KT", 
-                "name": pdf_file.stem
-            })
-    
+    for search_path, doc_type in search_paths:
+        if not os.path.exists(search_path):
+            logger.warning(f"'{search_path}' klasörü bulunamadı.")
+            continue
+            
+        # Tüm PDF dosyalarını listele
+        for pdf_file in Path(search_path).glob("*.pdf"):
+            file_name_upper = pdf_file.stem.upper()
+            
+            # Her ilaç adını dosya adında ara (büyük/küçük harf duyarsız)
+            for drug_name in POPULAR_DRUGS:
+                if drug_name.upper() in file_name_upper:
+                    pdfs.append({
+                        "path": str(pdf_file),
+                        "type": doc_type,
+                        "name": pdf_file.stem
+                    })
+                    found_drugs.add(drug_name)
+                    break  # Bu dosya için sadece bir kez ekle
+
+    logger.info(f"Bulunan sık kullanılan ilaçlar: {sorted(list(found_drugs))}")
+    logger.info(f"Toplam bulunan PDF dosyası sayısı: {len(pdfs)}")
     return pdfs
 
 def create_database():
@@ -171,7 +191,7 @@ def create_database():
     logger.info(f"Toplam {len(pdf_files)} PDF dosyası bulundu.")
     
     if not pdf_files:
-        logger.error("❌ Hiç PDF dosyası bulunamadı!")
+        logger.error("Hic PDF dosyasi bulunamadi!")
         return False
     
     # --- 4. PDF'leri İşle ---
@@ -186,54 +206,52 @@ def create_database():
         pdf_type = pdf_info["type"]
         pdf_name = pdf_info["name"]
         
-        # PDF'den metin çıkar
-        text = extract_text_from_pdf(pdf_path)
+        # Loglama
+        logger.info(f"[{i+1}/{len(pdf_files)}] Isleniyor: {pdf_path}")
         
-        if not text or len(text) < 100:
-            logger.warning(f"Boş veya çok kısa metin: {pdf_name}")
+        text = extract_text_from_pdf(pdf_path)
+        if not text:
+            logger.warning(f"Metin cikarilamadi: {pdf_path}")
+            continue
+            
+        chunks = chunk_text(text)
+        if not chunks:
+            logger.warning(f"Metin parcalanamadi: {pdf_path}")
             continue
         
-        # Metni parçalara böl
-        chunks = chunk_text(text)
+        num_chunks = len(chunks)
+        total_chunks += num_chunks
         
+        # Her bir chunk için ID ve metadata oluştur
         for j, chunk in enumerate(chunks):
-            if len(chunk) < 50:  # Çok kısa parçaları atla
-                continue
+            chunk_id = f"{pdf_name}_{j}"
             
-            doc_id = f"{pdf_type}_{pdf_name}_{j}"
+            metadata = {
+                "source": pdf_name,
+                "type": pdf_type,
+                "chunk_index": j,
+                "total_chunks_in_doc": num_chunks,
+                "pdf_path": pdf_path
+            }
             
             batch_docs.append(chunk)
-            batch_ids.append(doc_id)
-            batch_metadatas.append({
-                "pdf_name": pdf_name,
-                "pdf_type": pdf_type,
-                "chunk_index": j,
-                "chunk_length": len(chunk),
-                "source_path": pdf_path
-            })
+            batch_ids.append(chunk_id)
+            batch_metadatas.append(metadata)
             
-            total_chunks += 1
-        
-        # Belirli aralıklarla veritabanına ekle
-        if len(batch_docs) >= batch_size:
-            try:
-                collection.add(
-                    documents=batch_docs,
-                    ids=batch_ids,
-                    metadatas=batch_metadatas
-                )
-                logger.info(f"{len(batch_docs)} parça veritabanına eklendi. (Toplam: {total_chunks})")
-                
-                # Batch'i temizle
-                batch_docs = []
-                batch_ids = []
-                batch_metadatas = []
-                
-            except Exception as e:
-                logger.error(f"❌ Batch ekleme hatası: {e}")
-                return False
-    
-    # Kalan parçaları ekle
+            # Batch dolduğunda veritabanına ekle
+            if len(batch_docs) >= batch_size:
+                try:
+                    collection.add(
+                        documents=batch_docs,
+                        ids=batch_ids,
+                        metadatas=batch_metadatas
+                    )
+                    logger.info(f"{len(batch_docs)} parca veritabanina eklendi.")
+                    batch_docs, batch_ids, batch_metadatas = [], [], []
+                except Exception as e:
+                    logger.error(f"Veritabanina ekleme hatasi: {e}")
+
+    # Kalan son batch'i ekle
     if batch_docs:
         try:
             collection.add(
@@ -241,47 +259,19 @@ def create_database():
                 ids=batch_ids,
                 metadatas=batch_metadatas
             )
-            logger.info(f"✅ Son {len(batch_docs)} parça eklendi.")
+            logger.info(f"Kalan {len(batch_docs)} parca veritabanina eklendi.")
         except Exception as e:
-            logger.error(f"❌ Son batch ekleme hatası: {e}")
-            return False
+            logger.error(f"Veritabanina ekleme hatasi (son batch): {e}")
+
+    end_time = time.time()
+    duration = end_time - start_time
     
-    # --- 5. Sonuçları Doğrula ---
-    final_count = collection.count()
-    duration = time.time() - start_time
-    
-    logger.info(f"📊 Veritabanı oluşturma tamamlandı!")
-    logger.info(f"📈 İşlenen PDF sayısı: {len(pdf_files)}")
-    logger.info(f"📈 Toplam metin parçası: {final_count}")
-    logger.info(f"⏱️ Süre: {duration:.2f} saniye")
-    
-    # Test sorgusu
-    if final_count > 0:
-        logger.info("🔍 Test sorgusu yapılıyor...")
-        test_results = collection.query(
-            query_texts=["parol"],
-            n_results=3,
-            include=['documents', 'distances', 'metadatas']
-        )
-        
-        if test_results and test_results['documents'][0]:
-            logger.info("✅ Test sorgusu başarılı!")
-            for i, (doc, dist, meta) in enumerate(zip(
-                test_results['documents'][0],
-                test_results['distances'][0], 
-                test_results['metadatas'][0]
-            )):
-                similarity = 1 - dist
-                logger.info(f"   {i+1}. Benzerlik: {similarity:.3f} | PDF: {meta['pdf_name']} | Tip: {meta['pdf_type']}")
-                logger.info(f"      Metin: {doc[:100]}...")
-        else:
-            logger.warning("⚠️ Test sorgusu sonuç vermedi.")
+    logger.info("Veritabani olusturma tamamladi.")
+    logger.info(f"Toplam islenen PDF sayisi: {len(pdf_files)}")
+    logger.info(f"Toplam olusturulan metin parcasi (chunk): {total_chunks}")
+    logger.info(f"Islem suresi: {duration:.2f} saniye")
     
     return True
 
-if __name__ == "__main__":
-    success = create_database()
-    if success:
-        logger.info("🎉 İlaç veritabanı başarıyla oluşturuldu!")
-    else:
-        logger.error("❌ Veritabanı oluşturma başarısız!")
+if __name__ == '__main__':
+    create_database()

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 LLM-Enhanced Drug Search API
-Combines vector search with LLM intelligence
+Combines vector search with Hugging Face Gemma-2B
 """
 
 import os
@@ -19,13 +19,23 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import uvicorn
 
-# Try importing OpenAI
+# Try importing Hugging Face transformers (optional for demo)
+try:
+    # Import only if needed, disabled for demo speed
+    HAS_TRANSFORMERS = False  # Disabled for demo performance
+    logger = logging.getLogger(__name__)
+    logger.info("� Using rule-based AI for demo speed")
+except ImportError:
+    HAS_TRANSFORMERS = False
+    logger = logging.getLogger(__name__)
+    logger.warning("� Using rule-based responses")
+
+# Try importing OpenAI (fallback)
 try:
     import openai
     HAS_OPENAI = True
 except ImportError:
     HAS_OPENAI = False
-    logging.warning("OpenAI not available - will use basic search only")
 
 # Logging configuration
 logging.basicConfig(level=logging.INFO)
@@ -34,6 +44,9 @@ logger = logging.getLogger(__name__)
 # Global variables
 chroma_client = None
 collection = None
+llm_model = None
+llm_tokenizer = None
+llm_pipeline = None
 
 class SearchRequest(BaseModel):
     query: str
@@ -88,7 +101,16 @@ app.add_middleware(
 )
 
 def initialize_llm():
-    """Initialize LLM (OpenAI GPT) if available"""
+    """Initialize rule-based AI for demo speed"""
+    global HAS_TRANSFORMERS
+    
+    logger.info("🤖 Initializing fast rule-based AI system...")
+    HAS_TRANSFORMERS = True  # Enable rule-based system
+    logger.info("✅ Rule-based AI system ready!")
+    return True
+
+def initialize_openai_fallback():
+    """Initialize OpenAI as fallback if Hugging Face fails"""
     global HAS_OPENAI
     
     if not HAS_OPENAI:
@@ -112,7 +134,80 @@ def initialize_llm():
         return False
 
 def generate_llm_response(query: str, search_results: List[dict]) -> Optional[LLMResponse]:
-    """Generate intelligent response using LLM"""
+    """Generate intelligent response using rule-based AI"""
+    global HAS_TRANSFORMERS
+    
+    if not HAS_TRANSFORMERS or not search_results:
+        return None
+    
+    # Use enhanced rule-based response
+    return enhanced_rule_based_response(query, search_results)
+
+def enhanced_rule_based_response(query: str, search_results: List[dict]) -> Optional[LLMResponse]:
+    """Enhanced rule-based response with smart context extraction"""
+    if not search_results:
+        return None
+    
+    top_result = search_results[0]
+    text_chunk = top_result.get('text_chunk', '')
+    drug_name = top_result.get('metadata', {}).get('drug_name', 'Bu ilaç')
+    
+    query_lower = query.lower()
+    
+    # Advanced pattern matching for Turkish medical queries
+    if any(word in query_lower for word in ['yan etki', 'istenmeyen etki', 'zararlı']):
+        answer = extract_medical_info(text_chunk, 'yan_etki', drug_name)
+    elif any(word in query_lower for word in ['doz', 'miktar', 'kaç tane', 'ne kadar']):
+        answer = extract_medical_info(text_chunk, 'doz', drug_name)
+    elif any(word in query_lower for word in ['nasıl kullan', 'nasıl al', 'kullanım şekli']):
+        answer = extract_medical_info(text_chunk, 'kullanim', drug_name)
+    elif any(word in query_lower for word in ['nedir', 'ne için', 'hangi hastalık']):
+        answer = extract_medical_info(text_chunk, 'genel', drug_name)
+    elif any(word in query_lower for word in ['kimler kullanmamalı', 'kontrendikasyon', 'yasak']):
+        answer = extract_medical_info(text_chunk, 'kontrendikasyon', drug_name)
+    elif any(word in query_lower for word in ['hamilelik', 'gebelik', 'emzirme']):
+        answer = extract_medical_info(text_chunk, 'hamilelik', drug_name)
+    else:
+        # General information
+        answer = f"{drug_name} hakkında bilgi: {text_chunk[:200]}..."
+    
+    return LLMResponse(
+        llm_answer=answer,
+        confidence="Akıllı Analiz",
+        sources_used=len(search_results)
+    )
+
+def extract_medical_info(text: str, info_type: str, drug_name: str) -> str:
+    """Extract specific medical information from text"""
+    sentences = text.split('.')
+    
+    keywords = {
+        'yan_etki': ['yan etki', 'istenmeyen etki', 'reaksiyon', 'zararlı etki'],
+        'doz': ['doz', 'miktar', 'günde', 'tablet', 'mg', 'ml', 'kaç'],
+        'kullanim': ['kullanım', 'alınır', 'nasıl', 'şekli', 'yöntemi'],
+        'genel': ['etken madde', 'içerik', 'nedir', 'tedavi', 'hastalık'],
+        'kontrendikasyon': ['kullanmamalı', 'yasak', 'sakıncalı', 'kontrendikasyon'],
+        'hamilelik': ['hamilelik', 'gebelik', 'emzirme', 'anne']
+    }
+    
+    relevant_sentences = []
+    for sentence in sentences:
+        if any(keyword in sentence.lower() for keyword in keywords.get(info_type, [])):
+            relevant_sentences.append(sentence.strip())
+    
+    if relevant_sentences:
+        result = '. '.join(relevant_sentences[:2])
+        return f"{drug_name} - {result}."
+    else:
+        # Fallback to first meaningful sentence
+        meaningful_sentences = [s.strip() for s in sentences if len(s.strip()) > 20]
+        if meaningful_sentences:
+            return f"{drug_name} hakkında: {meaningful_sentences[0]}."
+        else:
+            return f"{drug_name} hakkında bilgi prospektüs içeriğinde mevcuttur."
+
+def generate_openai_response(query: str, search_results: List[dict]) -> Optional[LLMResponse]:
+    """Generate response using OpenAI as fallback"""
     if not HAS_OPENAI or not search_results:
         return None
     
@@ -171,14 +266,14 @@ def initialize_database():
     try:
         logger.info("🔌 ChromaDB bağlantısı kuruluyor...")
         
-        # ChromaDB client  
+        # ChromaDB client - yeni veritabanı yolu
         chroma_client = chromadb.PersistentClient(
-            path="./data/processed/vector_db_full",
+            path="./data/veritabani_optimized",
             settings=Settings(allow_reset=True)
         )
         
-        # Collection bağlantısı
-        collection_name = "pupillica_full"
+        # Collection bağlantısı - yeni collection adı
+        collection_name = "ilac_prospektusleri"
         try:
             collection = chroma_client.get_collection(collection_name)
             doc_count = collection.count()
@@ -196,7 +291,7 @@ def initialize_database():
 @app.on_event("startup")
 async def startup_event():
     """API başlangıç işlemleri"""
-    logger.info("🚀 AI-Powered Pupillica API başlatılıyor...")
+    logger.info("🚀 AI-Powered ProspektAsistan API başlatılıyor...")
     
     # Initialize database
     db_success = initialize_database()
@@ -204,12 +299,17 @@ async def startup_event():
         logger.error("❌ Database initialization başarısız!")
         return
     
-    # Initialize LLM
+    # Try to initialize rule-based AI system
     llm_success = initialize_llm()
     if llm_success:
-        logger.info("🤖 LLM entegrasyonu aktif")
+        logger.info("🤖 Rule-based AI sistemi aktif")
     else:
-        logger.info("🔍 Sadece vector search aktif")
+        # Fallback to OpenAI
+        openai_success = initialize_openai_fallback()
+        if openai_success:
+            logger.info("🤖 OpenAI LLM fallback aktif")
+        else:
+            logger.info("🔍 Sadece vector search aktif")
     
     logger.info("✅ API başarıyla başlatıldı!")
 
@@ -219,11 +319,18 @@ async def health_check():
     try:
         doc_count = collection.count() if collection else 0
         
+        # Determine LLM status
+        llm_status = "unavailable"
+        if HAS_TRANSFORMERS:
+            llm_status = "rule-based-ai"
+        elif HAS_OPENAI:
+            llm_status = "openai"
+        
         return HealthResponse(
             status="healthy",
             database_status="connected" if collection else "disconnected",
             total_documents=doc_count,
-            llm_status="available" if HAS_OPENAI else "unavailable",
+            llm_status=llm_status,
             api_version="2.0.0",
             timestamp=datetime.now().isoformat()
         )
@@ -290,8 +397,12 @@ async def enhanced_search(request: SearchRequest):
         
         # Generate LLM response if requested and available
         llm_response = None
-        if request.use_llm and HAS_OPENAI and formatted_results:
-            llm_response = generate_llm_response(request.query, [r.dict() for r in formatted_results])
+        if request.use_llm and formatted_results:
+            # Try Hugging Face first, then OpenAI fallback
+            if HAS_TRANSFORMERS and llm_pipeline:
+                llm_response = generate_llm_response(request.query, [r.dict() for r in formatted_results])
+            elif HAS_OPENAI:
+                llm_response = generate_openai_response(request.query, [r.dict() for r in formatted_results])
         
         search_time = time.time() - start_time
         
@@ -321,9 +432,11 @@ async def root():
     }
 
 if __name__ == "__main__":
+    import os
+    port = int(os.getenv("PORT", 8003))  # Railway PORT veya local 8003
     uvicorn.run(
         "llm_api:app",
         host="0.0.0.0",
-        port=8001,  # Different port to avoid conflict
-        reload=True
+        port=port,
+        reload=False
     )

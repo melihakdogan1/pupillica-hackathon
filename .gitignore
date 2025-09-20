@@ -1,9 +1,41 @@
-node_modules/
-*.pyc
+# Python
 __pycache__/
-.env
-.vercel
-data/
-*.log
+*.py[cod]
+*$py.class
+*.pyc
+
+# Virtual Environment
+venv/
+env/
+
+# IDE
 .vscode/
+.idea/
+
+# OS
 .DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+veritabani_olusturma.log
+
+# Data files (exclude large databases)
+data/veritabani_demo/
+data/kub/*.pdf
+data/kt/*.pdf
+
+# Keep optimized database for deployment
+!data/veritabani_optimized/
+
+# Environment variables
+.env
+.env.local
+
+# Deployment
+.vercel
+.railway/
+
+# Node modules
+node_modules/

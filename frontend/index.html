@@ -3,561 +3,67 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>💊 İlaç Asistanı - TİTCK İlaç Bilgi Sistemi</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 20px;
-        }
-        
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            background: white;
-            border-radius: 20px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
-            overflow: hidden;
-        }
-        
-        .header {
-            background: linear-gradient(135deg, #4CAF50, #45a049);
-            color: white;
-            padding: 40px;
-            text-align: center;
-        }
-        
-        .header h1 {
-            font-size: 3em;
-            margin-bottom: 15px;
-            font-weight: 700;
-        }
-        
-        .header .subtitle {
-            font-size: 1.3em;
-            opacity: 0.95;
-            margin-bottom: 10px;
-        }
-        
-        .header .stats {
-            font-size: 1em;
-            opacity: 0.8;
-            background: rgba(255,255,255,0.2);
-            padding: 10px 20px;
-            border-radius: 25px;
-            display: inline-block;
-            margin-top: 15px;
-        }
-        
-        .search-section {
-            padding: 50px 40px;
-        }
-        
-        .disclaimer {
-            background: #fff3cd;
-            border: 1px solid #ffeaa7;
-            border-radius: 10px;
-            padding: 20px;
-            margin-bottom: 30px;
-            color: #856404;
-            text-align: center;
-        }
-        
-        .disclaimer strong {
-            color: #721c24;
-        }
-        
-        .examples {
-            margin-bottom: 30px;
-            padding: 25px;
-            background: #f8f9fa;
-            border-radius: 15px;
-        }
-        
-        .examples h3 {
-            margin-bottom: 15px;
-            color: #2d3748;
-            font-size: 1.2em;
-        }
-        
-        .example-btn {
-            display: inline-block;
-            margin: 8px;
-            padding: 10px 18px;
-            background: white;
-            border: 2px solid #e9ecef;
-            border-radius: 25px;
-            font-size: 14px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            color: #495057;
-        }
-        
-        .example-btn:hover {
-            background: #4CAF50;
-            color: white;
-            border-color: #4CAF50;
-            transform: translateY(-2px);
-        }
-        
-        .search-container {
-            display: flex;
-            gap: 15px;
-            margin-bottom: 30px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-            border-radius: 30px;
-            overflow: hidden;
-        }
-        
-        .search-input {
-            flex: 1;
-            padding: 20px 25px;
-            font-size: 16px;
-            border: none;
-            outline: none;
-            background: white;
-        }
-        
-        .search-input::placeholder {
-            color: #adb5bd;
-        }
-        
-        .search-btn {
-            padding: 20px 35px;
-            background: linear-gradient(135deg, #4CAF50, #45a049);
-            color: white;
-            border: none;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            min-width: 120px;
-        }
-        
-        .search-btn:hover {
-            background: linear-gradient(135deg, #45a049, #4CAF50);
-            transform: translateX(-2px);
-        }
-        
-        .search-btn:disabled {
-            opacity: 0.7;
-            cursor: not-allowed;
-            transform: none;
-        }
-        
-        .status {
-            text-align: center;
-            padding: 20px;
-            font-size: 16px;
-            color: #666;
-            background: #f8f9fa;
-            border-radius: 10px;
-            margin-bottom: 20px;
-        }
-        
-        .status.loading {
-            color: #4CAF50;
-            background: #e8f5e8;
-        }
-        
-        .status.error {
-            color: #dc3545;
-            background: #f8d7da;
-        }
-        
-        .status.success {
-            color: #155724;
-            background: #d4edda;
-        }
-        
-        .results {
-            margin-top: 30px;
-        }
-        
-        .result-card {
-            background: white;
-            border: 1px solid #e9ecef;
-            border-radius: 15px;
-            padding: 25px;
-            margin-bottom: 20px;
-            transition: all 0.3s ease;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
-        }
-        
-        .result-card:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 15px 35px rgba(0,0,0,0.15);
-        }
-        
-        .result-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            margin-bottom: 15px;
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-        
-        .result-title {
-            font-size: 18px;
-            font-weight: 600;
-            color: #2d3748;
-            flex: 1;
-            min-width: 250px;
-        }
-        
-        .result-badges {
-            display: flex;
-            gap: 10px;
-            align-items: center;
-        }
-        
-        .result-type {
-            background: #4CAF50;
-            color: white;
-            padding: 6px 12px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: 600;
-        }
-        
-        .result-score {
-            background: #ffc107;
-            color: #212529;
-            padding: 6px 12px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: 600;
-        }
-        
-        .result-text {
-            color: #4a5568;
-            line-height: 1.7;
-            font-size: 15px;
-        }
-        
-        .result-text mark {
-            background: #fff3cd;
-            padding: 2px 4px;
-            border-radius: 3px;
-        }
-        
-        .stats-bar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-top: 25px;
-            padding: 20px;
-            background: #f8f9fa;
-            border-radius: 12px;
-            font-size: 14px;
-            color: #666;
-            flex-wrap: wrap;
-            gap: 15px;
-        }
-        
-        .rate-limit-warning {
-            background: #fff3cd;
-            border: 1px solid #ffeaa7;
-            color: #856404;
-            padding: 15px;
-            border-radius: 10px;
-            margin-top: 20px;
-            text-align: center;
-        }
-        
-        @media (max-width: 768px) {
-            .container {
-                margin: 10px;
-                border-radius: 15px;
-            }
-            
-            .header {
-                padding: 30px 20px;
-            }
-            
-            .header h1 {
-                font-size: 2.2em;
-            }
-            
-            .search-section {
-                padding: 30px 20px;
-            }
-            
-            .search-container {
-                flex-direction: column;
-                gap: 0;
-            }
-            
-            .search-input {
-                border-radius: 15px 15px 0 0;
-            }
-            
-            .search-btn {
-                border-radius: 0 0 15px 15px;
-                padding: 18px;
-            }
-            
-            .result-header {
-                flex-direction: column;
-                align-items: flex-start;
-            }
-            
-            .stats-bar {
-                flex-direction: column;
-                text-align: center;
-            }
-        }
-    </style>
+    <title>ProspektAsistan - İlaç Prospektüs Asistanı</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h1>💊 İlaç Asistanı</h1>
-            <div class="subtitle">TİTCK İlaç ve Tıbbi Ürün Bilgi Sistemi</div>
-            <div class="stats" id="headerStats">468,406 doküman içinde gelişmiş arama</div>
+            <h1><i class="fas fa-pills"></i> ProspektAsistan</h1>
+            <p>İlaç Prospektüs ve Kullanım Bilgileri Asistanı</p>
+            <div id="connectionStatus" class="connection-status">
+                <span id="status-indicator" class="status-indicator status-online"></span>
+                <span id="dbInfo">Bağlantı kuruluyor...</span>
+            </div>
         </div>
-        
-        <div class="search-section">
-            <div class="disclaimer">
-                <strong>⚠️ Önemli Uyarı:</strong> Bu sistem yalnızca bilgi amaçlıdır. 
-                İlaç kullanımı ile ilgili kararlarınızı almadan önce mutlaka doktorunuza danışın. 
-                TİTCK verilerinden oluşturulmuş arama sistemidir.
+
+        <div class="chat-container">
+            <div class="chat-messages" id="chatMessages">
+                <div class="welcome-message">
+                    <div class="assistant-message">
+                        <div class="message-avatar">
+                            <i class="fas fa-user-md"></i>
+                        </div>
+                        <div class="message-content">
+                            <h3>Merhaba! Ben ProspektAsistan'ım 👋</h3>
+                            <p>İlaçlar hakkında sorularınıza yanıt vererek size yardımcı olabilirim. İlaç adı yazarak başlayabilir veya sesli arama kullanabilirsiniz.</p>
+                            <div class="quick-actions">
+                                <h4>Hızlı Sorular:</h4>
+                                <div class="quick-searches">
+                                    <!-- JavaScript ile doldurulacak -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
             
-            <div class="examples">
-                <h3>📝 Hızlı Arama Örnekleri:</h3>
-                <span class="example-btn" onclick="setQuery('paracetamol yan etki')">paracetamol yan etki</span>
-                <span class="example-btn" onclick="setQuery('aspirin doz')">aspirin doz</span>
-                <span class="example-btn" onclick="setQuery('antibiyotik kullanım')">antibiyotik kullanım</span>
-                <span class="example-btn" onclick="setQuery('ağrı kesici')">ağrı kesici</span>
-                <span class="example-btn" onclick="setQuery('ateş düşürücü')">ateş düşürücü</span>
-                <span class="example-btn" onclick="setQuery('hamilelik ilaç')">hamilelik ilaç</span>
-                <span class="example-btn" onclick="setQuery('kan sulandırıcı')">kan sulandırıcı</span>
-                <span class="example-btn" onclick="setQuery('mide koruyucu')">mide koruyucu</span>
+            <div class="chat-input-section">
+                <div class="input-container">
+                    <input type="text" id="messageInput" class="message-input" placeholder="İlaç adı yazın veya sorunuzu sorun... (örn: 'aspirin yan etkileri')" maxlength="200">
+                    <button id="voiceBtn" class="voice-btn" title="Sesli Arama">
+                        <i class="fas fa-microphone"></i>
+                    </button>
+                    <button id="sendBtn" class="send-btn" title="Gönder">
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </div>
             </div>
-            
-            <div class="search-container">
-                <input 
-                    type="text" 
-                    class="search-input" 
-                    id="searchInput"
-                    placeholder="İlaç adı, yan etki, doz bilgisi veya kullanım alanı yazın..."
-                >
-                <button class="search-btn" id="searchBtn" onclick="performSearch()">
-                    🔍 Ara
-                </button>
+        </div>
+
+        <div class="typing-indicator" id="typingIndicator" style="display: none;">
+            <div class="typing-dots">
+                <span></span>
+                <span></span>
+                <span></span>
             </div>
-            
-            <div class="status" id="status">
-                Arama yapmak için yukarıya bir terim yazın ve Enter'a basın
-            </div>
-            
-            <div class="results" id="results"></div>
+            <span>ProspektAsistan yazıyor...</span>
         </div>
     </div>
 
-    <script>
-        // API Configuration
-        const API_BASE = window.location.hostname === 'localhost' ? 
-            'http://localhost:8000' : 
-            window.location.origin + '/api';
-        
-        // Rate limiting
-        class RateLimiter {
-            constructor(maxRequests = 15, timeWindow = 60000) {
-                this.maxRequests = maxRequests;
-                this.timeWindow = timeWindow;
-                this.requests = [];
-            }
-            
-            canMakeRequest() {
-                const now = Date.now();
-                this.requests = this.requests.filter(time => now - time < this.timeWindow);
-                
-                if (this.requests.length >= this.maxRequests) {
-                    return false;
-                }
-                
-                this.requests.push(now);
-                return true;
-            }
-            
-            getRemainingTime() {
-                if (this.requests.length === 0) return 0;
-                const oldestRequest = Math.min(...this.requests);
-                return Math.max(0, this.timeWindow - (Date.now() - oldestRequest));
-            }
-        }
-        
-        const rateLimiter = new RateLimiter(15, 60000); // 15 searches per minute
-        
-        // Event listeners
-        document.getElementById('searchInput').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                performSearch();
-            }
-        });
-        
-        function setQuery(query) {
-            document.getElementById('searchInput').value = query;
-            performSearch();
-        }
-        
-        async function performSearch() {
-            const query = document.getElementById('searchInput').value.trim();
-            const searchBtn = document.getElementById('searchBtn');
-            const status = document.getElementById('status');
-            const results = document.getElementById('results');
-            
-            if (!query) {
-                status.textContent = 'Lütfen arama yapmak için bir terim girin';
-                status.className = 'status error';
-                return;
-            }
-            
-            // Rate limiting check
-            if (!rateLimiter.canMakeRequest()) {
-                const waitTime = Math.ceil(rateLimiter.getRemainingTime() / 1000);
-                status.innerHTML = `⏱️ Çok fazla arama yaptınız. ${waitTime} saniye bekleyip tekrar deneyin.`;
-                status.className = 'status error';
-                
-                // Show rate limit warning
-                results.innerHTML = `
-                    <div class="rate-limit-warning">
-                        <strong>🚦 Arama Limiti</strong><br>
-                        Spam koruması nedeniyle dakikada en fazla 15 arama yapabilirsiniz.<br>
-                        Lütfen ${waitTime} saniye bekleyin.
-                    </div>
-                `;
-                return;
-            }
-            
-            // UI updates
-            searchBtn.disabled = true;
-            searchBtn.textContent = '🔄 Arıyor...';
-            status.textContent = `"${query}" için TİTCK verilerinde arama yapılıyor...`;
-            status.className = 'status loading';
-            results.innerHTML = '';
-            
-            try {
-                const startTime = Date.now();
-                const response = await fetch(`${API_BASE}/search?q=${encodeURIComponent(query)}&limit=8&min_similarity=0.2`);
-                const data = await response.json();
-                const totalTime = Date.now() - startTime;
-                
-                if (data.success && data.results.length > 0) {
-                    displayResults(data, totalTime);
-                } else {
-                    status.innerHTML = `
-                        🔍 "${query}" için sonuç bulunamadı.<br>
-                        <small>Farklı terimler deneyebilir veya yukarıdaki örnekleri kullanabilirsiniz.</small>
-                    `;
-                    status.className = 'status error';
-                }
-                
-            } catch (error) {
-                console.error('Arama hatası:', error);
-                status.innerHTML = `
-                    ❌ Arama sırasında hata oluştu.<br>
-                    <small>API bağlantısını kontrol edin veya daha sonra tekrar deneyin.</small>
-                `;
-                status.className = 'status error';
-            } finally {
-                searchBtn.disabled = false;
-                searchBtn.textContent = '🔍 Ara';
-            }
-        }
-        
-        function displayResults(data, clientTime) {
-            const status = document.getElementById('status');
-            const results = document.getElementById('results');
-            
-            status.innerHTML = `✅ ${data.total_results} sonuç bulundu`;
-            status.className = 'status success';
-            
-            results.innerHTML = data.results.map((result, index) => `
-                <div class="result-card">
-                    <div class="result-header">
-                        <div class="result-title">${result.document_name}</div>
-                        <div class="result-badges">
-                            <span class="result-type">${result.document_type}</span>
-                            <span class="result-score">📍 ${(result.similarity_score * 100).toFixed(1)}%</span>
-                        </div>
-                    </div>
-                    <div class="result-text">
-                        ${highlightQuery(result.text_chunk, data.query)}
-                    </div>
-                </div>
-            `).join('');
-            
-            // Add stats bar
-            results.innerHTML += `
-                <div class="stats-bar">
-                    <span>📊 ${data.total_results} sonuç gösteriliyor</span>
-                    <span>⚡ Arama süresi: ${data.search_time_ms}ms</span>
-                    <span>🌐 Toplam süre: ${clientTime}ms</span>
-                    <span>🗄️ 468,406 doküman tarandı</span>
-                </div>
-            `;
-        }
-        
-        function highlightQuery(text, query) {
-            if (!query) return text;
-            
-            const terms = query.toLowerCase().split(' ').filter(term => term.length > 2);
-            let highlightedText = text;
-            
-            terms.forEach(term => {
-                const regex = new RegExp(`(${escapeRegExp(term)})`, 'gi');
-                highlightedText = highlightedText.replace(regex, '<mark>$1</mark>');
-            });
-            
-            return highlightedText;
-        }
-        
-        function escapeRegExp(string) {
-            return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-        }
-        
-        // Initialize API status check
-        async function checkAPIStatus() {
-            try {
-                const response = await fetch(`${API_BASE}/health`);
-                const data = await response.json();
-                
-                if (data.status === 'healthy') {
-                    document.getElementById('headerStats').textContent = 
-                        `${data.total_documents.toLocaleString('tr-TR')} doküman hazır`;
-                    document.getElementById('status').innerHTML = 
-                        `✅ Sistem aktif - ${data.total_documents.toLocaleString('tr-TR')} doküman aranabilir`;
-                    document.getElementById('status').className = 'status success';
-                }
-            } catch (error) {
-                document.getElementById('status').innerHTML = 
-                    '❌ API bağlantısı yok. Lütfen backend sistemini başlatın.';
-                document.getElementById('status').className = 'status error';
-            }
-        }
-        
-        // Initialize on page load
-        window.addEventListener('load', function() {
-            checkAPIStatus();
-            document.getElementById('searchInput').focus();
-        });
-    </script>
+    <script src="script_new.js"></script>
 </body>
 </html>
-            <button id="send-button">Gönder</button>
-        </div>
-    </div>
-    <script src="script.js"></script>
 </body>
 </html>

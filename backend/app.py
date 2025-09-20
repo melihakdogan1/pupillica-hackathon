@@ -5,7 +5,6 @@ import os
 import json
 from typing import List, Optional
 import uvicorn
-
 app = FastAPI(
     title="Pupillica Medical AI API",
     description="İlaç prospektüs bilgileri için AI chatbot API",

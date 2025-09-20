@@ -242,13 +242,13 @@ def scrape_titck_with_selenium():
                 break
             
             total_ilac_count += processed
-            print(f"✓ Sayfa {page_num} tamamlandı: {processed} ilaç işlendi")
-            print(f"📊 Toplam işlenen ilaç: {total_ilac_count}")
+            print(f" Sayfa {page_num} tamamlandı: {processed} ilaç işlendi")
+            print(f" Toplam işlenen ilaç: {total_ilac_count}")
             
             # İndirilen dosya sayılarını kontrol et
             kub_files = len([f for f in os.listdir(KUB_DIR) if f.endswith('.pdf')])
             kt_files = len([f for f in os.listdir(KT_DIR) if f.endswith('.pdf')])
-            print(f"📁 İndirilen dosyalar - KÜB: {kub_files}, KT: {kt_files}")
+            print(f" İndirilen dosyalar - KÜB: {kub_files}, KT: {kt_files}")
             
             # Sonraki sayfaya git
             print("Sonraki sayfaya geçiliyor...")
@@ -264,12 +264,12 @@ def scrape_titck_with_selenium():
                 break
     
     except KeyboardInterrupt:
-        print("\n🛑 Kullanıcı tarafından durduruldu.")
+        print("\n Kullanıcı tarafından durduruldu.")
     except Exception as e:
-        print(f"🚨 Genel hata: {e}")
+        print(f" Genel hata: {e}")
     
     finally:
-        print("\n🔄 Tarayıcı kapatılıyor...")
+        print("\n Tarayıcı kapatılıyor...")
         driver.quit()
     
     # Final istatistikleri
@@ -277,13 +277,13 @@ def scrape_titck_with_selenium():
     kt_files = len([f for f in os.listdir(KT_DIR) if f.endswith('.pdf')])
     
     print(f"\n{'='*60}")
-    print("🎉 VERİ ÇEKME İŞLEMİ TAMAMLANDI")
+    print(" VERİ ÇEKME İŞLEMİ TAMAMLANDI")
     print(f"{'='*60}")
-    print(f"📋 Toplam İşlenen İlaç: {total_ilac_count}")
-    print(f"📁 İndirilen KÜB Dosyası: {kub_files}")
-    print(f"📁 İndirilen KT Dosyası: {kt_files}")
-    print(f"📁 Toplam İndirilen: {kub_files + kt_files}")
-    print(f"📊 Başarı Oranı: {((kub_files + kt_files) / (total_ilac_count * 2) * 100):.1f}%" if total_ilac_count > 0 else "N/A")
+    print(f" Toplam İşlenen İlaç: {total_ilac_count}")
+    print(f" İndirilen KÜB Dosyası: {kub_files}")
+    print(f" İndirilen KT Dosyası: {kt_files}")
+    print(f" Toplam İndirilen: {kub_files + kt_files}")
+    print(f" Başarı Oranı: {((kub_files + kt_files) / (total_ilac_count * 2) * 100):.1f}%" if total_ilac_count > 0 else "N/A")
     print(f"{'='*60}")
 
 if __name__ == "__main__":
