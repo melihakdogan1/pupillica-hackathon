@@ -1,10 +1,15 @@
 class ProspektAsistan {
     constructor() {
-        this.API_BASE = 'http://127.0.0.1:8003';
+        // GitHub Pages demo için API URL
+        this.API_BASE = window.location.hostname === 'melihakdogan1.github.io' 
+            ? 'https://prospektasistan-api.herokuapp.com' // Heroku backup
+            : 'http://127.0.0.1:8003'; // Local development
+        
         this.isListening = false;
         this.recognition = null;
         this.currentDrug = null;
         this.conversationHistory = [];
+        this.isDemoMode = window.location.hostname === 'melihakdogan1.github.io';
         this.init();
     }
 
@@ -100,11 +105,18 @@ class ProspektAsistan {
 
     async checkAPIStatus() {
         try {
-            const response = await fetch(`${this.API_BASE}/health`);
-            const data = await response.json();
-            
             const statusElement = document.getElementById('status-indicator');
             const dbInfoElement = document.getElementById('dbInfo');
+            
+            if (this.isDemoMode) {
+                // Demo mode status
+                statusElement.className = 'status-indicator status-online';
+                dbInfoElement.textContent = '6,425 demo ilaç prospektüsü (Demo Mode)';
+                return;
+            }
+            
+            const response = await fetch(`${this.API_BASE}/health`);
+            const data = await response.json();
             
             if (data.status === 'healthy') {
                 statusElement.className = 'status-indicator status-online';
@@ -114,7 +126,7 @@ class ProspektAsistan {
             const statusElement = document.getElementById('status-indicator');
             const dbInfoElement = document.getElementById('dbInfo');
             statusElement.className = 'status-indicator status-offline';
-            dbInfoElement.textContent = 'Bağlantı hatası';
+            dbInfoElement.textContent = this.isDemoMode ? 'Demo Mode - Çevrimdışı' : 'Bağlantı hatası';
         }
     }
 
@@ -139,6 +151,10 @@ class ProspektAsistan {
     }
 
     async searchDrug(query) {
+        if (this.isDemoMode) {
+            return await this.getMockResponse(query);
+        }
+
         const response = await fetch(`${this.API_BASE}/search`, {
             method: 'POST',
             headers: {
@@ -157,6 +173,83 @@ class ProspektAsistan {
         }
 
         return await response.json();
+    }
+
+    async getMockResponse(query) {
+        // Demo için gecikme simülasyonu
+        await new Promise(resolve => setTimeout(resolve, 1000 + Math.random() * 1000));
+        
+        const queryLower = query.toLowerCase();
+        
+        // Aspirin sorguları için mock yanıt
+        if (queryLower.includes('aspirin')) {
+            return {
+                results: [
+                    {
+                        metadata: {
+                            source: "aspirin_prospektus.pdf",
+                            drug_name: "Aspirin"
+                        },
+                        page_content: "Aspirin (Asetilsalisilik asit) ağrı kesici, ateş düşürücü ve anti-inflamatuar özelliklere sahiptir."
+                    }
+                ],
+                llm_response: {
+                    llm_answer: "🔍 **Aspirin** hakkında bilgiler bulundu:\n\n**Etken Madde:** Asetilsalisilik asit\n\n**Kullanım Alanları:**\n• Ağrı kesici (baş ağrısı, diş ağrısı)\n• Ateş düşürücü\n• Kalp krizi önleme (düşük doz)\n\n**Yan Etkiler:**\n• Mide rahatsızlığı\n• Kulak çınlaması (yüksek doz)\n• Kanama riski artışı\n\n**⚠️ Dikkat:** Çocuklarda Reye sendromu riski nedeniyle kullanılmamalıdır."
+                }
+            };
+        }
+        
+        // Parol sorguları için mock yanıt
+        if (queryLower.includes('parol') || queryLower.includes('parasetamol')) {
+            return {
+                results: [
+                    {
+                        metadata: {
+                            source: "parol_prospektus.pdf",
+                            drug_name: "Parol"
+                        },
+                        page_content: "Parol parasetamol içeren ağrı kesici ve ateş düşürücü ilaçtır."
+                    }
+                ],
+                llm_response: {
+                    llm_answer: "🔍 **Parol** hakkında bilgiler bulundu:\n\n**Etken Madde:** Parasetamol\n\n**Kullanım Alanları:**\n• Ağrı kesici\n• Ateş düşürücü\n• Baş ağrısı, kas ağrısı\n\n**Dozaj:**\n• Yetişkin: 500-1000 mg, günde 4 kez\n• Maksimum günlük doz: 4000 mg\n\n**Yan Etkiler:**\n• Nadiren karaciğer hasarı\n• Aşırı dozda toksik\n\n**✅ Güvenlik:** Gebelik ve emzirmede güvenli kabul edilir."
+                }
+            };
+        }
+        
+        // Genel ağrı sorguları
+        if (queryLower.includes('ağrı') || queryLower.includes('agri')) {
+            return {
+                results: [
+                    {
+                        metadata: {
+                            source: "agri_kesiciler.pdf",
+                            drug_name: "Ağrı Kesiciler"
+                        },
+                        page_content: "Ağrı kesici ilaçlar farklı etki mekanizmalarına sahiptir."
+                    }
+                ],
+                llm_response: {
+                    llm_answer: "🔍 **Ağrı Kesici İlaçlar** hakkında bilgi:\n\n**Sık Kullanılan Ağrı Kesiciler:**\n• **Parasetamol** (Parol, Tylol)\n• **Aspirin** (Asetilsalisilik asit)\n• **İbuprofen** (Majezik, Advil)\n• **Diklofenak** (Voltaren)\n\n**Seçim Kriterleri:**\n• Ağrının türü ve şiddeti\n• Kişinin yaşı ve sağlık durumu\n• Diğer ilaç kullanımı\n\n**💡 Hangi ilacın prospektüsünü incelemek istiyorsunuz?**"
+                }
+            };
+        }
+        
+        // Default yanıt
+        return {
+            results: [
+                {
+                    metadata: {
+                        source: "demo_bilgi.pdf",
+                        drug_name: "Demo"
+                    },
+                    page_content: `"${query}" hakkında demo bilgisi.`
+                }
+            ],
+            llm_response: {
+                llm_answer: `🔍 **"${query}"** hakkında arama yapıldı.\n\n**Demo Mode Aktif** - Bu ProspektAsistan'ın demo versiyonudur.\n\n**Önerilen Aramalar:**\n• Aspirin\n• Parol\n• Ağrı kesici ilaçlar\n• Ateş düşürücü\n\n**💡 İpucu:** Daha spesifik ilaç adları veya belirtiler yazarsanız detaylı bilgi alabilirsiniz.\n\n**Tam Sürüm:** Gerçek ProspektAsistan 6,425+ ilaç prospektüsüne erişim sağlar.`
+            }
+        };
     }
 
     async handleResponse(userQuery, searchData) {
