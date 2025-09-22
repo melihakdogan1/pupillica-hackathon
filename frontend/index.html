@@ -3,67 +3,72 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ProspektAsistan - İlaç Prospektüs Asistanı</title>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <title>ProspektAsistan - Akıllı İlaç Asistanı</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1><i class="fas fa-pills"></i> ProspektAsistan</h1>
-            <p>İlaç Prospektüs ve Kullanım Bilgileri Asistanı</p>
-            <div id="connectionStatus" class="connection-status">
-                <span id="status-indicator" class="status-indicator status-online"></span>
-                <span id="dbInfo">Bağlantı kuruluyor...</span>
+    <section class="fullscreen-section" id="welcome-section">
+        <div class="welcome-content">
+            <div class="logo">
+                <i class="fas fa-pills"></i>
+                <h1>ProspektAsistan</h1>
+            </div>
+            <p class="subtitle">İlaç Prospektüs ve Kullanım Bilgileri Asistanı</p>
+            <div class="welcome-card" id="startChatCard">
+                <i class="fas fa-comments"></i>
+                <h3>AI Asistan ile Sohbet Et</h3>
+                <p>İlaçlar hakkında merak ettiğiniz her şeyi sorun.</p>
             </div>
         </div>
+        <a href="#about-section" class="scroll-down-btn" title="Daha Fazla Bilgi">
+            <i class="fas fa-chevron-down"></i>
+        </a>
+    </section>
 
-        <div class="chat-container">
-            <div class="chat-messages" id="chatMessages">
-                <div class="welcome-message">
-                    <div class="assistant-message">
-                        <div class="message-avatar">
-                            <i class="fas fa-user-md"></i>
-                        </div>
-                        <div class="message-content">
-                            <h3>Merhaba! Ben ProspektAsistan'ım 👋</h3>
-                            <p>İlaçlar hakkında sorularınıza yanıt vererek size yardımcı olabilirim. İlaç adı yazarak başlayabilir veya sesli arama kullanabilirsiniz.</p>
-                            <div class="quick-actions">
-                                <h4>Hızlı Sorular:</h4>
-                                <div class="quick-searches">
-                                    <!-- JavaScript ile doldurulacak -->
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+    <section class="fullscreen-section about-section" id="about-section">
+        <div class="about-content">
+            <h2>Projemiz Hakkında</h2>
+            <div class="about-cards-container">
+                <div class="about-card">
+                    <i class="fas fa-database"></i>
+                    <h3>Güvenilir Veri Kaynağı</h3>
+                    <p>ProspektAsistan, gücünü T.C. Sağlık Bakanlığı TİTCK'nın halka açık verilerinden alır. 6,000'den fazla prospektüs ile en güncel bilgiyi sunarız.</p>
+                </div>
+                <div class="about-card">
+                    <i class="fas fa-crosshairs"></i>
+                    <h3>Misyonumuz</h3>
+                    <p>Misyonumuz, karmaşık tıbbi jargonu herkesin anlayabileceği basit bir dile çevirerek sağlık okuryazarlığını artırmaktır.</p>
+                </div>
+                <div class="about-card">
+                    <i class="fas fa-cogs"></i>
+                    <h3>Kullandığımız Teknolojiler</h3>
+                    <p>Projemiz, RAG mimarisi üzerine kurulmuştur. Backend'de FastAPI, AI'da LangChain ve Ollama, Frontend'de ise modern JavaScript kullanılmıştır.</p>
                 </div>
             </div>
-            
+        </div>
+        <a href="#welcome-section" class="scroll-up-btn" title="Yukarı Dön">
+            <i class="fas fa-chevron-up"></i>
+        </a>
+    </section>
+
+    <div class="chat-wrapper" id="chatWrapper">
+        <div class="chat-container">
+            <div class="chat-header">
+                <button class="home-btn" id="homeBtn" title="Sohbeti Kapat"><i class="fas fa-times"></i></button>
+                <div class="logo-small"><i class="fas fa-pills"></i> ProspektAsistan</div>
+            </div>
+            <div class="chat-messages" id="chatMessages"></div>
+            <div class="typing-indicator" id="typingIndicator"><span>ProspektAsistan yazıyor...</span></div>
             <div class="chat-input-section">
                 <div class="input-container">
-                    <input type="text" id="messageInput" class="message-input" placeholder="İlaç adı yazın veya sorunuzu sorun... (örn: 'aspirin yan etkileri')" maxlength="200">
-                    <button id="voiceBtn" class="voice-btn" title="Sesli Arama">
-                        <i class="fas fa-microphone"></i>
-                    </button>
-                    <button id="sendBtn" class="send-btn" title="Gönder">
-                        <i class="fas fa-paper-plane"></i>
-                    </button>
+                    <input type="text" id="messageInput" class="message-input" placeholder="Aspirin yan etkileri...">
+                    <button id="sendBtn" class="send-btn" title="Gönder"><i class="fas fa-paper-plane"></i></button>
                 </div>
             </div>
-        </div>
-
-        <div class="typing-indicator" id="typingIndicator" style="display: none;">
-            <div class="typing-dots">
-                <span></span>
-                <span></span>
-                <span></span>
-            </div>
-            <span>ProspektAsistan yazıyor...</span>
         </div>
     </div>
 
-    <script src="script_new.js"></script>
-</body>
-</html>
+    <script src="script.js"></script>
 </body>
 </html>

@@ -1,13 +1,32 @@
-data/raw/
-data/processed/vector_db_full/
+# Large database files
+data/veritabani_demo/
+data/veritabani/
+data/kub/
+data/kt/
+
+# Keep only optimized database
+!data/veritabani_optimized/
+
+# Development files
 __pycache__/
 *.pyc
 *.log
-.git/
 .vscode/
+.git/
 node_modules/
 *.tmp
 *.temp
+
+# Test files
+*test*.py
+comprehensive_test.py
+final_test.py
+quick_test.py
+simple_test.py
+test_*.py
+
+# Logs
+veritabani_olusturma.log
 debug_page.html
 selenium_debug_page.html
 failed_downloads.log

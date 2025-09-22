@@ -1,18 +1,24 @@
 {
-  "name": "ilacasistan",
+  "name": "prospektasistan",
   "version": "1.0.0",
-  "description": "İlaç Asistanı - TİTCK İlaç ve Tıbbi Ürün Bilgi Sistemi",
-  "main": "api/search.py",
+  "description": "ProspektAsistan - AI-Powered Drug Information Assistant",
+  "main": "backend/main.py",
   "scripts": {
-    "dev": "vercel dev",
-    "build": "echo 'Build complete'",
-    "start": "vercel --prod"
+    "dev": "cd frontend && python -m http.server 3000",
+    "backend": "cd backend && python main.py",
+    "build": "echo 'Build complete - Static files ready'",
+    "start": "npm run dev"
   },
-  "keywords": ["ilac", "tibbi", "urun", "titck", "arama", "semantic"],
-  "author": "İlaç Asistanı Team",
+  "keywords": ["ai", "drug", "medicine", "prospectus", "healthcare", "semantic-search", "rag", "chatbot"],
+  "author": "ProspektAsistan Team",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/melihakdogan1/pupillica-hackathon"
+  },
   "dependencies": {},
   "engines": {
-    "node": "22.x"
+    "node": "22.x",
+    "python": "3.9.x"
   }
 }

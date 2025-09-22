@@ -18,6 +18,18 @@ Thumbs.db
 
 # Logs
 *.log
+
+# Development/Test Files
+test_*.py
+*_test.py
+ngrok.exe
+ngrok.zip
+deploy.bat
+veritabani_olusturma.log
+
+# Temporary Files
+*.tmp
+*.temp
 logs/
 veritabani_olusturma.log
 
