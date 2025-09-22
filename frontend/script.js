@@ -3,7 +3,7 @@ document.addEventListener('DOMContentLoaded', () => new ProspektAsistan());
 class ProspektAsistan {
     constructor() {
     
-        this.API_BASE = 'https://e03708f8f330.ngrok-free.app';
+        this.API_BASE = 'https://d60b249e237e.ngrok-free.app';
         this.init();
     }
 

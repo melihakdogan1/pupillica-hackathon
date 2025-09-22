@@ -42,9 +42,9 @@ app = FastAPI(
 
 # CORS ayarları - Frontend domainleri için
 origins = [
-    "https://charming-creponne-1a466d.netlify.app",  # Netlify production
-    "http://localhost:3000",  # Development frontend
-    "http://127.0.0.1:3000",  # Local development
+    "https://golden-biscochitos-c9a21d.netlify.app",  # Netlify production
+    "http://localhost:8000",  # Development frontend
+    "http://127.0.0.1:4040",  # Local development
     "*"  # Demo için tüm domainlere izin
 ]
 app.add_middleware(
